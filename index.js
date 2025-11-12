@@ -26,6 +26,7 @@ async function run() {
 
     const db = client.db("traveleaseDB");
     const vehiclesCollection = db.collection("vehicles");
+    const BooksCollection = db.collection("bookingsCollection");
 
     app.get("/vehicles", async (req, res) => {
       console.log(req.query);
@@ -92,6 +93,36 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/bookings", async (req, res) => {
+      try {
+        const email = req.query.userEmail;
+        const query = email ? { userEmail: email } : {};
+        const bookings = await BooksCollection.find(query).toArray();
+        res.json(bookings);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Failed to fetch bookings" });
+      }
+    });
+    app.post("/bookings", async (req, res) => {
+      try {
+        const bookingData = req.body;
+
+        if (!bookingData.createdAt) {
+          bookingData.createdAt = new Date().toISOString();
+        }
+
+        const result = await BooksCollection.insertOne(bookingData);
+        if (result.insertedId) {
+          res.status(201).json({ insertedId: result.insertedId });
+        } else {
+          res.status(500).json({ message: "Failed to create booking" });
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error creating booking" });
+      }
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
