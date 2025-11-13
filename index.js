@@ -59,6 +59,15 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/sort", async (req, res) => {
+      const cursor = vehiclesCollection
+        .find()
+        .toArray()
+        .then((vehicles) =>
+          vehicles.sort((a, b) => Number(a.pricePerDay) - Number(b.pricePerDay))
+        );
+      res.send(await cursor);
+    });
 
     app.post("/vehicles", async (req, res) => {
       const newVehicles = req.body;
